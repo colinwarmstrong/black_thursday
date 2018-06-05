@@ -29,16 +29,17 @@ class MerchantRepository
     end
   end
 
-  def create(attributes)
+  def new_id(attributes)
     if attributes[:id].nil?
       id = @merchants[-1].id + 1
     else
       id = attributes[:id]
     end
-    new_merchant = Merchant.new(id: id,
-                                name: attributes[:name],
-                                created_at: attributes[:created_at],
-                                updated_at: attributes[:updated_at])
+  end
+
+  def create(attributes)
+    attributes[:id] = new_id(attributes)
+    new_merchant = Merchant.new(attributes)
     @merchants << new_merchant
     return new_merchant
   end
