@@ -1,10 +1,10 @@
+require_relative 'repository'
 require_relative 'merchant_repository'
 require_relative 'item_repository'
 require_relative 'invoice_repository'
 require_relative 'invoice_item_repository'
 require_relative 'transaction_repository'
 require_relative 'customer_repository'
-require_relative 'repository'
 require_relative 'sales_analyst'
 require 'bigdecimal'
 require 'bigdecimal/util'
@@ -55,9 +55,9 @@ class SalesEngine
                     name: item[:name],
                     description: item[:description],
                     unit_price: item[:unit_price],
+                    merchant_id: item[:merchant_id],
                     created_at: Time.parse(item[:created_at]),
-                    updated_at: Time.parse(item[:updated_at]),
-                    merchant_id: item[:merchant_id])
+                    updated_at: Time.parse(item[:updated_at]))
     end
   end
 

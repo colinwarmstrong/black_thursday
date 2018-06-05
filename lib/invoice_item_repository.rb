@@ -17,17 +17,17 @@ class InvoiceItemRepository < Repository
     attributes[:id] = new_id(attributes)
     new_invoice_item = InvoiceItem.new(attributes)
     @repository << new_invoice_item
-    return new_invoice_item
+    new_invoice_item
   end
 
   def update(id, attributes)
     if find_by_id(id).nil?
       return
     else
-      updated_invoice_item = find_by_id(id)
+      invoice_item = find_by_id(id)
+      invoice_item.quantity = attributes[:quantity] unless attributes[:quantity].nil?
+      invoice_item.unit_price = attributes[:unit_price] unless attributes[:unit_price].nil?
+      invoice_item.updated_at = Time.now
     end
-    updated_invoice_item.quantity = attributes[:quantity]
-    updated_invoice_item.unit_price = attributes[:unit_price]
-    updated_invoice_item.updated_at = Time.now
   end
 end

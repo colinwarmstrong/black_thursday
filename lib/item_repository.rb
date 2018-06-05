@@ -19,9 +19,9 @@ class ItemRepository < Repository
     end
   end
 
-  def find_all_by_price_in_range(range)
+  def find_all_by_price_in_range(price_range)
     @repository.find_all do |item|
-      range.include?(item.unit_price_to_dollars)
+      price_range.include?(item.unit_price_to_dollars)
     end
   end
 
@@ -35,18 +35,18 @@ class ItemRepository < Repository
     attributes[:id] = new_id(attributes)
     new_item = Item.new(attributes)
     @repository << new_item
-    return new_item
+    new_item
   end
 
   def update(id, attributes)
     if find_by_id(id).nil?
       return
     else
-      updated_item = find_by_id(id)
+      item = find_by_id(id)
+      item.name = attributes[:name] unless attributes[:name].nil?
+      item.description = attributes[:description] unless attributes[:description].nil?
+      item.unit_price = attributes[:unit_price] unless attributes[:unit_price].nil?
+      item.updated_at = Time.now
     end
-    updated_item.name ||= attributes[:name]
-    updated_item.description ||= attributes[:description]
-    updated_item.unit_price = attributes[:unit_price]
-    updated_item.updated_at = Time.now
   end
 end

@@ -23,18 +23,18 @@ class TransactionRepository < Repository
     attributes[:id] = new_id(attributes)
     new_transaction = Transaction.new(attributes)
     @repository << new_transaction
-    return new_transaction
+    new_transaction
   end
 
   def update(id, attributes)
     if find_by_id(id).nil?
       return
     else
-      updated_transaction = find_by_id(id)
+      transaction = find_by_id(id)
+      transaction.credit_card_number = attributes[:credit_card_number] unless attributes[:credit_card_number].nil?
+      transaction.credit_card_expiration_date = attributes[:credit_card_expiration_date] unless attributes[:credit_card_expiration_date].nil?
+      transaction.result = attributes[:result] unless attributes[:result].nil?
+      transaction.updated_at = Time.now
     end
-    updated_transaction.credit_card_number ||= attributes[:credit_card_number]
-    updated_transaction.credit_card_expiration_date ||= attributes[:credit_card_expiration_date]
-    updated_transaction.result = attributes[:result]
-    updated_transaction.updated_at = Time.now
   end
 end

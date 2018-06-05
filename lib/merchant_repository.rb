@@ -1,5 +1,4 @@
 require_relative 'merchant'
-require_relative 'repository'
 
 class MerchantRepository < Repository
   def find_by_name(name)
@@ -18,15 +17,16 @@ class MerchantRepository < Repository
     attributes[:id] = new_id(attributes)
     new_merchant = Merchant.new(attributes)
     @repository << new_merchant
-    return new_merchant
+    new_merchant
   end
 
   def update(id, attributes)
-    updated_merchant = find_by_id(id)
-    if updated_merchant.nil?
+    if find_by_id(id).nil?
       return
     else
-      updated_merchant.name = attributes[:name]
+      merchant = find_by_id(id)
+      merchant.name = attributes[:name] unless attributes[:name].nil?
+      merchant.updated_at = Time.now
     end
   end
 end

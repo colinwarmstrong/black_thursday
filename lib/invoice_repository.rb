@@ -23,16 +23,16 @@ class InvoiceRepository < Repository
     attributes[:id] = new_id(attributes)
     new_invoice = Invoice.new(attributes)
     @repository << new_invoice
-    return new_invoice
+    new_invoice
   end
 
   def update(id, attributes)
     if find_by_id(id).nil?
       return
     else
-      updated_invoice = find_by_id(id)
+      invoice = find_by_id(id)
+      invoice.status = attributes[:status] unless attributes[:status].nil?
+      invoice.updated_at = Time.now
     end
-    updated_invoice.status = attributes[:status]
-    updated_invoice.updated_at = Time.now
   end
 end
