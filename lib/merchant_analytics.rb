@@ -1,9 +1,13 @@
 module MerchantAnalytics
   def top_revenue_earners(x = 20)
-    merchants_ranked_by_revenue[0..(x - 1)]
+    @ranked_merchants[0..(x - 1)]
   end
 
   def merchants_ranked_by_revenue
+    @ranked_merchants
+  end
+
+  def rank_merchants_by_revenue
     @engine.merchants.all.sort_by do |merchant|
       revenue_by_merchant(merchant.id)
     end.reverse
@@ -92,3 +96,4 @@ module MerchantAnalytics
     end.first
     @engine.items.find_by_id(best_item)
   end
+end

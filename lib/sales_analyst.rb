@@ -7,6 +7,8 @@ class SalesAnalyst
 
   def initialize(engine)
     @engine = engine
+    @ranked_merchants = rank_merchants_by_revenue
+    @ranked_customers = rank_customers_by_money_spent
   end
 
   def group_items_by_merchant
@@ -41,20 +43,32 @@ class SalesAnalyst
     end.compact
   end
 
-  def average_item_price_for_merchant(merchant_id)
-    sum_of_item_prices = @engine.items.find_all_by_merchant_id[merchant_id].inject(0) do |sum, item|
+  def sum_of_item_prices(merchant_id)
+    @engine.items.find_all_by_merchant_id(merchant_id).inject(0) do |sum, item|
       sum += item.unit_price
       sum
     end
-    (sum_of_item_prices / @items.find_all_by_merchant_id(merchant_id).length).round(2)
   end
 
-  def average_average_price_per_merchant
-    sum_of_averages = group_items_by_merchant.inject(0) do |sum, merchant|
+  def average_item_price_for_merchant(merchant_id)
+    sum = sum_of_item_prices(merchant_id)
+    total_items = @engine.items.find_all_by_merchant_id(merchant_id).length
+    average = sum / total_items
+    BigDecimal(average).round(2)
+  end
+
+  def sum_of_averages
+    group_items_by_merchant.inject(0) do |sum, merchant|
       sum += average_item_price_for_merchant(merchant[0])
       sum
     end
-    (sum_of_averages / @engine.merchants.all.length).round(2)
+  end
+
+  def average_average_price_per_merchant
+    sum = sum_of_averages
+    total_merchants = @engine.merchants.all.length
+    average = sum / total_merchants
+    BigDecimal(average).round(2)
   end
 
   def item_price_standard_deviation(average_item_price)

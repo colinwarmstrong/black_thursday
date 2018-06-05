@@ -1,9 +1,9 @@
 module CustomerAnalytics
   def top_buyers(x = 20)
-    buyers_ranked_by_money_spent[0..(x - 1)]
+    @ranked_customers[0..(x - 1)]
   end
 
-  def buyers_ranked_by_money_spent
+  def rank_customers_by_money_spent
     @engine.customers.all.sort_by do |customer|
       money_spent_by_customer(customer.id)
     end.reverse
@@ -21,6 +21,18 @@ module CustomerAnalytics
     end
   end
 
+  def top_merchant_for_customer(customer_id)
+    @engine.merchants.find_by_id(find_top_merchant(customer_id).first)
+  end
+
+  def find_top_merchant(customer_id)
+    invoices = @engine.invoices.find_all_by_customer_id(customer_id)
+    invoices.inject(Hash.new(0)) do |purchases, invoice|
+      purchases[invoice.merchant_id] += total_items_sold_per_invoice(invoice.id)
+      purchases
+    end.max_by { |merchant| merchant.last }
+  end
+
   def total_items_sold_per_invoice(invoice_id)
     invoice_items = @engine.invoice_items.find_all_by_invoice_id(invoice_id)
     invoice_items.inject(0) do |total, invoice_item|
@@ -33,27 +45,24 @@ module CustomerAnalytics
     end
   end
 
-  def top_merchant_for_customer(customer_id)
-    @engine.invoices.find_all_by_customer_id(customer_id).inject(Hash.new(0)) do |purchases_per_merchant, invoice|
-      purchases_per_merchant[invoice.merchant_id] += total_items_sold_per_invoice(invoice.id)
-      purchases_per_merchant
-    end
-    most_purchased_merchant = purchases_by_merchant.max_by do |merchant|
-      merchant[1]
-    end
-    @engine.merchants.find_by_id(most_purchased_merchant[0])
-  end
-
   def one_time_buyers
     @engine.customers.all.find_all do |customer|
       @engine.invoices.find_all_by_customer_id(customer.id).length == 1
     end
   end
 
-  def items_by_quantity(invoices)
+  def one_time_buyers_top_item
+    top_item = item_quantities(one_time_buyer_invoices).max_by { |item| item.last }
+    @engine.items.find_by_id(top_item.first)
+  end
+
+  def item_quantities(invoices)
     invoices.inject(Hash.new(0)) do |quantities, invoice|
       if invoice_paid_in_full?(invoice.id)
-        quantities += total_items_sold_per_invoice(inovice.id)
+        invoice_items = @engine.invoice_items.find_all_by_invoice_id(invoice.id)
+        invoice_items.each do |invoice_item|
+          quantities[invoice_item.item_id] += total_items_sold_per_invoice(invoice.id)
+        end
         quantities
       else
         quantities
@@ -61,37 +70,31 @@ module CustomerAnalytics
     end
   end
 
-  def one_time_buyers_top_item
-    single_invoices = find_customers_with_one_invoice.map do |customer|
-      customer[1]
-    end.flatten!
-    top_item = items_by_quantity(single_invoices).max_by do |item|
-      item[1]
-    end
-    @engine.items.find_by_id(top_item[0])
+  def one_time_buyer_invoices
+    one_time_buyers.map do |customer|
+      @engine.invoices.find_all_by_customer_id(customer.id)
+    end.flatten
   end
 
-  def invoice_items_per_customer(customer_id)
+  def items_bought_in_year(customer_id, year)
+    invoice_items = customer_invoice_items(customer_id).find_all do |invoice_item|
+      @engine.invoices.find_by_id(invoice_item.invoice_id).created_at.strftime('%Y') == year.to_s
+    end
+    invoice_items.map do |invoice_item|
+      @engine.items.find_by_id(invoice_item.item_id)
+    end
+  end
+
+  def customer_invoice_items(customer_id)
     @engine.invoices.find_all_by_customer_id(customer_id).map do |invoice|
       @engine.invoice_items.find_all_by_invoice_id(invoice.id)
     end.flatten
   end
 
-  def items_bought_in_year(customer_id, year)
-    invoice_items_per_customer(customer_id).inject([]) do |items, invoice_item|
-      if @engine.invoices.find_by_id(invoice_item.invoice_id).created_at.strftime('%Y') == year.to_s
-        items << @engine.items.find_by_id(invoice_item.item_id)
-        items
-      else
-        items
-      end
-    end
-  end
-
   def determine_quantity_sold_for_each_item(customer_id)
-    invoice_items_per_customer(customer_id).inject(Hash.new(0)) do |volume, invoice_item|
-      volume[invoice_item.item_id] += invoice_item.quantity
-      volume
+    customer_invoice_items(customer_id).inject(Hash.new(0)) do |quantity, invoice_item|
+      quantity[invoice_item.item_id] += invoice_item.quantity
+      quantity
     end
   end
 
@@ -134,29 +137,11 @@ module CustomerAnalytics
     end
   end
 
-  def invoices_by_revenue
-    group_invoice_items_by_invoice.inject(Hash.new(0)) do |revenues, invoice|
-      if invoice_paid_in_full?(invoice[0])
-        revenues[invoice[0]] += revenue_per_invoice(invoice[1])
-        revenues
-      else
-        revenues
-      end
-    end
-  end
-
-  def best_invoice_by_revenue
-    max_revenue_invoice = invoices_by_revenue.max_by do |invoice|
+  def best_invoice_by_quantity
+    max_quantity_invoice = invoices_by_quantity.max_by do |invoice|
       invoice[1]
     end
-    @engine.invoices.find_by_id(max_revenue_invoice[0])
-  end
-
-  def quantity_per_invoice(invoice_items)
-    invoice_items.inject(0) do |quantity, invoice_item|
-      quantity += invoice_item.quantity
-      quantity
-    end
+    @engine.invoices.find_by_id(max_quantity_invoice[0])
   end
 
   def invoices_by_quantity
@@ -170,10 +155,28 @@ module CustomerAnalytics
     end
   end
 
-  def best_invoice_by_quantity
-    max_quantity_invoice = invoices_by_quantity.max_by do |invoice|
+  def quantity_per_invoice(invoice_items)
+    invoice_items.inject(0) do |quantity, invoice_item|
+      quantity += invoice_item.quantity
+      quantity
+    end
+  end
+
+  def best_invoice_by_revenue
+    max_revenue_invoice = invoices_by_revenue.max_by do |invoice|
       invoice[1]
     end
-    @engine.invoices.find_by_id(max_quantity_invoice[0])
+    @engine.invoices.find_by_id(max_revenue_invoice[0])
+  end
+
+  def invoices_by_revenue
+    group_invoice_items_by_invoice.inject(Hash.new(0)) do |revenues, invoice|
+      if invoice_paid_in_full?(invoice[0])
+        revenues[invoice[0]] += revenue_per_invoice(invoice[1])
+        revenues
+      else
+        revenues
+      end
+    end
   end
 end
