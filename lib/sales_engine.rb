@@ -29,7 +29,7 @@ class SalesEngine
     engine.create_transaction_repository(sales_data)
     engine.create_customer_repository(sales_data)
     engine.create_sales_analyst(engine)
-    return engine
+    engine
   end
 
   def parse_data(data_file)

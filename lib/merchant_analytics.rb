@@ -15,13 +15,10 @@ module MerchantAnalytics
 
   def revenue_by_merchant(merchant_id)
     invoices = @engine.invoices.find_all_by_merchant_id(merchant_id)
+    invoices.delete_if { |invoice| !invoice_paid_in_full?(invoice.id) }
     invoices.inject(0) do |revenue, invoice|
-      if invoice_paid_in_full?(invoice.id)
-        revenue += invoice_total(invoice.id)
-        revenue
-      else
-        revenue
-      end
+      revenue += invoice_total(invoice.id)
+      revenue
     end
   end
 
