@@ -1,12 +1,12 @@
 module CustomerAnalytics
-  def top_buyers(x = 20)
-    @ranked_customers[0..(x - 1)]
-  end
-
   def rank_customers_by_money_spent
     @engine.customers.all.sort_by do |customer|
-      money_spent_by_customer(customer.id)
-    end.reverse
+      -money_spent_by_customer(customer.id)
+    end
+  end
+
+  def top_buyers(x = 20)
+    @ranked_customers[0..(x - 1)]
   end
 
   def money_spent_by_customer(customer_id)

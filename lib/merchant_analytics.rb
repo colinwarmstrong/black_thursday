@@ -1,16 +1,16 @@
 module MerchantAnalytics
+  def rank_merchants_by_revenue
+    @engine.merchants.all.sort_by do |merchant|
+      -revenue_by_merchant(merchant.id)
+    end
+  end
+
   def top_revenue_earners(x = 20)
     @ranked_merchants[0..(x - 1)]
   end
 
   def merchants_ranked_by_revenue
     @ranked_merchants
-  end
-
-  def rank_merchants_by_revenue
-    @engine.merchants.all.sort_by do |merchant|
-      revenue_by_merchant(merchant.id)
-    end.reverse
   end
 
   def revenue_by_merchant(merchant_id)
@@ -54,7 +54,7 @@ module MerchantAnalytics
 
   def merchants_with_only_one_item_registered_in_month(month)
     merchants_with_only_one_item.find_all do |merchant|
-      Time.parse(merchant.created_at).strftime('%B').downcase == month.downcase
+      merchant.created_at.strftime('%B').downcase == month.downcase
     end
   end
 

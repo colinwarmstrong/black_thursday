@@ -1,53 +1,28 @@
 require_relative 'invoice'
 
-class InvoiceRepository
-  attr_reader :invoices
-
-  def initialize
-    @invoices = []
-  end
-
-  def all
-    @invoices
-  end
-
-  def find_by_id(id)
-    @invoices.find do |invoice|
-      invoice.id == id
-    end
-  end
-
+class InvoiceRepository < Repository
   def find_all_by_customer_id(customer_id)
-    @invoices.find_all do |invoice|
+    @repository.find_all do |invoice|
       invoice.customer_id == customer_id
     end
   end
 
   def find_all_by_merchant_id(merchant_id)
-    @invoices.find_all do |invoice|
+    @repository.find_all do |invoice|
       invoice.merchant_id == merchant_id
     end
   end
 
   def find_all_by_status(status)
-    @invoices.find_all do |invoice|
+    @repository.find_all do |invoice|
       invoice.status == status
     end
   end
 
   def create(attributes)
-    if attributes[:id].nil?
-      id = @invoices[-1].id + 1
-    else
-      id = attributes[:id]
-    end
-    new_invoice = Invoice.new(id: id,
-                              customer_id: attributes[:customer_id],
-                              merchant_id: attributes[:merchant_id],
-                              status: attributes[:status],
-                              created_at: attributes[:created_at].to_s,
-                              updated_at: attributes[:updated_at].to_s)
-    @invoices << new_invoice
+    attributes[:id] = new_id(attributes)
+    new_invoice = Invoice.new(attributes)
+    @repository << new_invoice
     return new_invoice
   end
 
@@ -59,14 +34,5 @@ class InvoiceRepository
     end
     updated_invoice.status = attributes[:status]
     updated_invoice.updated_at = Time.now
-  end
-
-  def delete(id)
-    deleted_invoice = find_by_id(id)
-    @invoices.delete(deleted_invoice)
-  end
-
-  def inspect
-    "#<#{self.class} #{@invoices.size} rows>"
   end
 end

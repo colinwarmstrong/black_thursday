@@ -4,6 +4,7 @@ require_relative 'invoice_repository'
 require_relative 'invoice_item_repository'
 require_relative 'transaction_repository'
 require_relative 'customer_repository'
+require_relative 'repository'
 require_relative 'sales_analyst'
 require 'bigdecimal'
 require 'bigdecimal/util'
@@ -42,8 +43,8 @@ class SalesEngine
     merchant_data.each do |merchant|
       @merchants.create(id: merchant[:id],
                         name: merchant[:name],
-                        created_at: merchant[:created_at],
-                        updated_at: merchant[:updated_at])
+                        created_at: Time.parse(merchant[:created_at]),
+                        updated_at: Time.parse(merchant[:updated_at]))
     end
   end
 
@@ -54,8 +55,8 @@ class SalesEngine
                     name: item[:name],
                     description: item[:description],
                     unit_price: item[:unit_price],
-                    created_at: item[:created_at],
-                    updated_at: item[:updated_at],
+                    created_at: Time.parse(item[:created_at]),
+                    updated_at: Time.parse(item[:updated_at]),
                     merchant_id: item[:merchant_id])
     end
   end
@@ -67,8 +68,8 @@ class SalesEngine
                        customer_id: invoice[:customer_id],
                        merchant_id: invoice[:merchant_id],
                        status: invoice[:status],
-                       created_at: invoice[:created_at],
-                       updated_at: invoice[:updated_at])
+                       created_at: Time.parse(invoice[:created_at]),
+                       updated_at: Time.parse(invoice[:updated_at]))
     end
   end
 
@@ -80,8 +81,8 @@ class SalesEngine
                             invoice_id: invoice_item[:invoice_id],
                             quantity: invoice_item[:quantity],
                             unit_price: invoice_item[:unit_price],
-                            created_at: invoice_item[:created_at],
-                            updated_at: invoice_item[:updated_at])
+                            created_at: Time.parse(invoice_item[:created_at]),
+                            updated_at: Time.parse(invoice_item[:updated_at]))
     end
   end
 
@@ -93,8 +94,8 @@ class SalesEngine
                            credit_card_number: transaction[:credit_card_number],
                            credit_card_expiration_date: transaction[:credit_card_expiration_date],
                            result: transaction[:result],
-                           created_at: transaction[:created_at],
-                           updated_at: transaction[:updated_at])
+                           created_at: Time.parse(transaction[:created_at]),
+                           updated_at: Time.parse(transaction[:updated_at]))
     end
   end
 
@@ -104,8 +105,8 @@ class SalesEngine
       @customers.create(id: customer[:id],
                         first_name: customer[:first_name],
                         last_name: customer[:last_name],
-                        created_at: customer[:created_at],
-                        updated_at: customer[:updated_at])
+                        created_at: Time.parse(customer[:created_at]),
+                        updated_at: Time.parse(customer[:updated_at]))
     end
   end
 
