@@ -21,25 +21,24 @@ class SalesEngine
               :analyst
 
   def self.from_csv(sales_data)
-    merchant_data = CSV.open(sales_data[:merchants], headers: true, header_converters: :symbol)
-    item_data = CSV.open(sales_data[:items], headers: true, header_converters: :symbol)
-    invoice_data = CSV.open(sales_data[:invoices], headers: true, header_converters: :symbol)
-    invoice_item_data = CSV.open(sales_data[:invoice_items], headers: true, header_converters: :symbol)
-    transaction_data = CSV.open(sales_data[:transactions], headers: true, header_converters: :symbol)
-    customer_data = CSV.open(sales_data[:customers], headers: true, header_converters: :symbol)
     engine = SalesEngine.new
-    engine.create_merchant_repository(merchant_data)
-    engine.create_item_repository(item_data)
-    engine.create_invoice_repository(invoice_data)
-    engine.create_invoice_item_repository(invoice_item_data)
-    engine.create_transaction_repository(transaction_data)
-    engine.create_customer_repository(customer_data)
+    engine.create_merchant_repository(sales_data)
+    engine.create_item_repository(sales_data)
+    engine.create_invoice_repository(sales_data)
+    engine.create_invoice_item_repository(sales_data)
+    engine.create_transaction_repository(sales_data)
+    engine.create_customer_repository(sales_data)
     engine.create_sales_analyst(engine)
     return engine
   end
 
-  def create_merchant_repository(merchant_data)
+  def parse_data(data_file)
+    CSV.open(data_file, headers: true, header_converters: :symbol)
+  end
+
+  def create_merchant_repository(sales_data)
     @merchants = MerchantRepository.new
+    merchant_data = parse_data(sales_data[:merchants])
     merchant_data.each do |merchant|
       @merchants.create(id: merchant[:id],
                         name: merchant[:name],
@@ -48,8 +47,9 @@ class SalesEngine
     end
   end
 
-  def create_item_repository(item_data)
+  def create_item_repository(sales_data)
     @items = ItemRepository.new
+    item_data = parse_data(sales_data[:items])
     item_data.each do |item|
       @items.create(id: item[:id],
                     name: item[:name],
@@ -61,8 +61,9 @@ class SalesEngine
     end
   end
 
-  def create_invoice_repository(invoice_data)
+  def create_invoice_repository(sales_data)
     @invoices = InvoiceRepository.new
+    invoice_data = parse_data(sales_data[:invoices])
     invoice_data.each do |invoice|
       @invoices.create(id: invoice[:id],
                        customer_id: invoice[:customer_id],
@@ -73,8 +74,9 @@ class SalesEngine
     end
   end
 
-  def create_invoice_item_repository(invoice_item_data)
+  def create_invoice_item_repository(sales_data)
     @invoice_items = InvoiceItemRepository.new
+    invoice_item_data = parse_data(sales_data[:invoice_items])
     invoice_item_data.each do |invoice_item|
       @invoice_items.create(id: invoice_item[:id],
                             item_id: invoice_item[:item_id],
@@ -86,8 +88,9 @@ class SalesEngine
     end
   end
 
-  def create_transaction_repository(transaction_data)
+  def create_transaction_repository(sales_data)
     @transactions = TransactionRepository.new
+    transaction_data = parse_data(sales_data[:transactions])
     transaction_data.each do |transaction|
       @transactions.create(id: transaction[:id],
                            invoice_id: transaction[:invoice_id],
@@ -99,8 +102,9 @@ class SalesEngine
     end
   end
 
-  def create_customer_repository(customer_data)
+  def create_customer_repository(sales_data)
     @customers = CustomerRepository.new
+    customer_data = parse_data(sales_data[:customers])
     customer_data.each do |customer|
       @customers.create(id: customer[:id],
                         first_name: customer[:first_name],
