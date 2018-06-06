@@ -13,8 +13,8 @@ class InvoiceItem
     @invoice_id = attributes[:invoice_id].to_i
     @quantity = attributes[:quantity].to_i
     @unit_price = attributes[:unit_price].to_d / 100
-    @created_at = Time.parse(attributes[:created_at])
-    @updated_at = Time.parse(attributes[:updated_at])
+    @created_at = attributes[:created_at]
+    @updated_at = attributes[:updated_at]
   end
 
   def unit_price_to_dollars
