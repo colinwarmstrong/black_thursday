@@ -42,4 +42,8 @@ class InvoiceItemTest < Minitest::Test
   def test_updated_at_returns_the_correct_time
     assert_equal Time.parse("2012-03-27 14:56:08 UTC"), @invoice_item.updated_at
   end
+
+  def test_unit_price_to_dollars_returns_correct_value
+    assert_equal 1.00, @invoice_item.unit_price_to_dollars
+  end
 end

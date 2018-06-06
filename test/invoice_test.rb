@@ -1,7 +1,7 @@
 require './test/test_helper'
 require './lib/invoice'
 
-class InvoiceRepositoryTest < Minitest::Test
+class InvoiceTest < Minitest::Test
   def setup
     attributes = { id: '1',
                    customer_id: '12',
