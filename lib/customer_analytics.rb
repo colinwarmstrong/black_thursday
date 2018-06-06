@@ -24,15 +24,16 @@ module CustomerAnalytics
 
   def find_top_merchant(customer_id)
     invoices = @engine.invoices.find_all_by_customer_id(customer_id)
+    invoices.delete_if { |invoice| !invoice_in_paid_invoices?(invoice.id) }
+    invoice_items_by_invoice = @engine.invoice_items.all.group_by(&:invoice_id)
     invoices.inject(Hash.new(0)) do |purchases, invoice|
-      purchases[invoice.merchant_id] += total_items_sold_per_invoice(invoice.id)
+      total = total_items_sold_per_invoice(invoice_items_by_invoice[invoice.id])
+      purchases[invoice.merchant_id] += total
       purchases
     end.max_by { |merchant| merchant.last }
   end
 
-  def total_items_sold_per_invoice(invoice_id)
-    invoice_items = @engine.invoice_items.find_all_by_invoice_id(invoice_id)
-    invoice_items.delete_if { |invoice_item| !invoice_paid_in_full?(invoice_item.invoice_id) }
+  def total_items_sold_per_invoice(invoice_items)
     invoice_items.inject(0) do |total, invoice_item|
       total += invoice_item.quantity
       total
@@ -46,12 +47,12 @@ module CustomerAnalytics
   end
 
   def one_time_buyers_top_item
-    top_item = item_quantities(one_time_invoices).max_by { |item| item.last }
+    top_item = item_quantities(one_time_invoices).max_by(&:last)
     @engine.items.find_by_id(top_item.first)
   end
 
   def item_quantities(invoices)
-    invoices.delete_if { |invoice| !invoice_paid_in_full?(invoice.id)}
+    invoices.delete_if { |invoice| !invoice_in_paid_invoices?(invoice.id) }
     invoices.inject(Hash.new(0)) do |quantities, invoice|
       invoice_items = @engine.invoice_items.find_all_by_invoice_id(invoice.id)
       invoice_items.each do |invoice_item|
@@ -68,9 +69,10 @@ module CustomerAnalytics
   end
 
   def items_bought_in_year(customer_id, year)
-    customer_invoice_items(customer_id).find_all do |invoice_item|
+    item_ids = customer_invoice_items(customer_id).find_all do |invoice_item|
       @engine.invoices.find_by_id(invoice_item.invoice_id).created_at.strftime('%Y') == year.to_s
-    end.map { |invoice_item| @engine.items.find_by_id(invoice_item.item_id) }
+    end
+    item_ids.map { |invoice_item| @engine.items.find_by_id(invoice_item.item_id) }
   end
 
   def customer_invoice_items(customer_id)
@@ -87,17 +89,16 @@ module CustomerAnalytics
   end
 
   def find_highest_quantity(quantity_sold_per_item)
-    quantity_sold_per_item.max_by do |item, quantity|
-      quantity
-    end
+    quantity_sold_per_item.max_by { |quantity| quantity }
   end
 
   def highest_volume_items(customer_id)
     quantity_sold_per_item = determine_quantity_sold_for_each_item(customer_id)
     highest_volume = find_highest_quantity(quantity_sold_per_item.values)
-    quantity_sold_per_item.find_all do |item|
+    best_sellers = quantity_sold_per_item.find_all do |item|
       item.last == highest_volume
-    end.map { |best_seller| @engine.items.find_by_id(best_seller.first) }
+    end
+    best_sellers.map { |best_seller| @engine.items.find_by_id(best_seller.first) }
   end
 
   def customers_with_unpaid_invoices
@@ -109,8 +110,8 @@ module CustomerAnalytics
   end
 
   def best_invoice_by_revenue
-    max_revenue_invoice = invoices_by_revenue.max_by do |invoice, revenue|
-      revenue
+    max_revenue_invoice = invoices_by_revenue.max_by do |invoice|
+      invoice.last
     end
     @engine.invoices.find_by_id(max_revenue_invoice.first)
   end
@@ -137,14 +138,8 @@ module CustomerAnalytics
     end
   end
 
-  def invoice_in_paid_invoices?(invoice_id)
-    @paid_invoices.include?(@engine.invoices.find_by_id(invoice_id))
-  end
-
   def best_invoice_by_quantity
-    max_quantity_invoice = invoices_by_quantity.max_by do |invoice, quantity|
-      quantity
-    end
+    max_quantity_invoice = invoices_by_quantity.max_by(&:last)
     @engine.invoices.find_by_id(max_quantity_invoice[0])
   end
 
@@ -162,5 +157,9 @@ module CustomerAnalytics
       quantity += invoice_item.quantity
       quantity
     end
+  end
+
+  def invoice_in_paid_invoices?(invoice_id)
+    @paid_invoices.include?(@engine.invoices.find_by_id(invoice_id))
   end
 end

@@ -21,12 +21,9 @@ class MerchantRepository < Repository
   end
 
   def update(id, attributes)
-    if find_by_id(id).nil?
-      return
-    else
-      merchant = find_by_id(id)
-      merchant.name = attributes[:name] unless attributes[:name].nil?
-      merchant.updated_at = Time.now
-    end
+    return if find_by_id(id).nil?
+    merchant = find_by_id(id)
+    merchant.name = attributes[:name] unless attributes[:name].nil?
+    merchant.updated_at = Time.now
   end
 end

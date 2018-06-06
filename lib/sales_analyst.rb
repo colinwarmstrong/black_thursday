@@ -13,9 +13,7 @@ class SalesAnalyst
   end
 
   def group_items_by_merchant
-    @engine.items.all.group_by do |item|
-      item.merchant_id
-    end
+    @engine.items.all.group_by(&:merchant_id)
   end
 
   def average_items_per_merchant
@@ -31,7 +29,7 @@ class SalesAnalyst
     end
     quotient = sum_of_squared_differences / (@engine.merchants.all.length - 1)
     standard_deviation_long = Math.sqrt(quotient)
-    return BigDecimal(standard_deviation_long, 3).to_f
+    BigDecimal(standard_deviation_long, 3).to_f
   end
 
   def merchants_with_high_item_count
@@ -80,7 +78,7 @@ class SalesAnalyst
     end
     quotient = sum_of_squared_differences / (@engine.items.all.length - 1)
     standard_deviation_long = Math.sqrt(quotient)
-    return BigDecimal(standard_deviation_long, 4)
+    BigDecimal(standard_deviation_long, 4)
   end
 
   def golden_items
@@ -97,21 +95,19 @@ class SalesAnalyst
   end
 
   def group_invoices_by_merchant
-    @engine.invoices.all.group_by do |invoice|
-      invoice.merchant_id
-    end
+    @engine.invoices.all.group_by(&:merchant_id)
   end
 
   def average_invoices_per_merchant_standard_deviation
     average_invoices = average_invoices_per_merchant
     sum_of_squared_differences = group_invoices_by_merchant.inject(0) do |sum, merchant|
       difference = merchant[1].length - average_invoices
-      sum += (difference ** 2)
+      sum += (difference**2)
       sum
     end
     quotient = sum_of_squared_differences / (@engine.merchants.all.length - 1)
     standard_deviation_long = Math.sqrt(quotient)
-    return BigDecimal(standard_deviation_long, 3).to_f
+    BigDecimal(standard_deviation_long, 3).to_f
   end
 
   def top_merchants_by_invoice_count
@@ -154,7 +150,7 @@ class SalesAnalyst
     end
     quotient = sum_of_squared_differences / 6
     standard_deviation_long = Math.sqrt(quotient)
-    return BigDecimal(standard_deviation_long, 3).to_f
+    BigDecimal(standard_deviation_long, 3).to_f
   end
 
   def top_days_by_invoice_count

@@ -1,6 +1,6 @@
 module MerchantAnalytics
   def rank_merchants_by_revenue
-    invoices = @paid_invoices.group_by { |invoice| invoice.merchant_id }
+    invoices = @paid_invoices.group_by(&:merchant_id)
     @engine.merchants.all.sort_by do |merchant|
       -revenue_generated_in_merchant_invoices(invoices[merchant.id])
     end
@@ -14,8 +14,8 @@ module MerchantAnalytics
     end
   end
 
-  def top_revenue_earners(x = 20)
-    @ranked_merchants[0..(x - 1)]
+  def top_revenue_earners(amount = 20)
+    @ranked_merchants[0..(amount - 1)]
   end
 
   def merchants_ranked_by_revenue
@@ -43,7 +43,7 @@ module MerchantAnalytics
   def merchants_with_pending_invoices
     @engine.merchants.all.find_all do |merchant|
       @engine.invoices.find_all_by_merchant_id(merchant.id).any? do |invoice|
-        !invoice_paid_in_full?(invoice.id)
+        !invoice_in_paid_invoices?(invoice.id)
       end
     end
   end
@@ -62,15 +62,16 @@ module MerchantAnalytics
 
   def most_sold_item_for_merchant(merchant_id)
     items_by_quantity = group_items_by_quantity(merchant_id)
-    highest_volume_item = items_by_quantity.max_by { |item| item.last }
+    highest_volume_item = items_by_quantity.max_by(&:last)
     max_amount_sold = highest_volume_item.last
-    items_by_quantity.find_all do |item|
+    most_sold_item_ids = items_by_quantity.find_all do |item|
       item.last == max_amount_sold
-    end.map { |item| @engine.items.find_by_id(item.first) }
+    end
+    most_sold_item_ids.map { |item| @engine.items.find_by_id(item.first) }
   end
 
   def group_items_by_quantity(merchant_id)
-    invoices = paid_invoices(merchant_id)
+    invoices = @paid_invoices.find_all { |invoice| invoice.merchant_id == merchant_id }
     find_invoice_items(invoices).inject(Hash.new(0)) do |quantities, invoice_item|
       quantities[invoice_item.item_id] += invoice_item.quantity
       quantities
@@ -83,23 +84,21 @@ module MerchantAnalytics
     end.flatten
   end
 
-  def paid_invoices(merchant_id)
-    @engine.invoices.find_all_by_merchant_id(merchant_id).find_all do |invoice|
-      invoice_paid_in_full?(invoice.id)
-    end
-  end
-
   def best_item_for_merchant(merchant_id)
     items_by_revenue = group_items_by_revenue(merchant_id)
-    highest_revenue_item = items_by_revenue.max_by { |item| item.last }
+    highest_revenue_item = items_by_revenue.max_by(&:last)
     @engine.items.find_by_id(highest_revenue_item.first)
   end
 
   def group_items_by_revenue(merchant_id)
-    invoices = paid_invoices(merchant_id)
+    invoices = @paid_invoices.find_all { |invoice| invoice.merchant_id == merchant_id }
     find_invoice_items(invoices).inject(Hash.new(0)) do |revenues, invoice_item|
       revenues[invoice_item.item_id] += invoice_item.quantity * invoice_item.unit_price
       revenues
     end
+  end
+
+  def invoice_in_paid_invoices?(invoice_id)
+    @paid_invoices.include?(@engine.invoices.find_by_id(invoice_id))
   end
 end

@@ -27,12 +27,9 @@ class InvoiceRepository < Repository
   end
 
   def update(id, attributes)
-    if find_by_id(id).nil?
-      return
-    else
-      invoice = find_by_id(id)
-      invoice.status = attributes[:status] unless attributes[:status].nil?
-      invoice.updated_at = Time.now
-    end
+    return if find_by_id(id).nil?
+    invoice = find_by_id(id)
+    invoice.status = attributes[:status] unless attributes[:status].nil?
+    invoice.updated_at = Time.now
   end
 end

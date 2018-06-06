@@ -27,14 +27,11 @@ class TransactionRepository < Repository
   end
 
   def update(id, attributes)
-    if find_by_id(id).nil?
-      return
-    else
-      transaction = find_by_id(id)
-      transaction.credit_card_number = attributes[:credit_card_number] unless attributes[:credit_card_number].nil?
-      transaction.credit_card_expiration_date = attributes[:credit_card_expiration_date] unless attributes[:credit_card_expiration_date].nil?
-      transaction.result = attributes[:result] unless attributes[:result].nil?
-      transaction.updated_at = Time.now
-    end
+    return if find_by_id(id).nil?
+    transaction = find_by_id(id)
+    transaction.credit_card_number = attributes[:credit_card_number] unless attributes[:credit_card_number].nil?
+    transaction.credit_card_expiration_date = attributes[:credit_card_expiration_date] unless attributes[:credit_card_expiration_date].nil?
+    transaction.result = attributes[:result] unless attributes[:result].nil?
+    transaction.updated_at = Time.now
   end
 end

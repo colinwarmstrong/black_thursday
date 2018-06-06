@@ -21,13 +21,10 @@ class InvoiceItemRepository < Repository
   end
 
   def update(id, attributes)
-    if find_by_id(id).nil?
-      return
-    else
-      invoice_item = find_by_id(id)
-      invoice_item.quantity = attributes[:quantity] unless attributes[:quantity].nil?
-      invoice_item.unit_price = attributes[:unit_price] unless attributes[:unit_price].nil?
-      invoice_item.updated_at = Time.now
-    end
+    return if find_by_id(id).nil?
+    invoice_item = find_by_id(id)
+    invoice_item.quantity = attributes[:quantity] unless attributes[:quantity].nil?
+    invoice_item.unit_price = attributes[:unit_price] unless attributes[:unit_price].nil?
+    invoice_item.updated_at = Time.now
   end
 end

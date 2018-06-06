@@ -39,14 +39,11 @@ class ItemRepository < Repository
   end
 
   def update(id, attributes)
-    if find_by_id(id).nil?
-      return
-    else
-      item = find_by_id(id)
-      item.name = attributes[:name] unless attributes[:name].nil?
-      item.description = attributes[:description] unless attributes[:description].nil?
-      item.unit_price = attributes[:unit_price] unless attributes[:unit_price].nil?
-      item.updated_at = Time.now
-    end
+    return if find_by_id(id).nil?
+    item = find_by_id(id)
+    item.name = attributes[:name] unless attributes[:name].nil?
+    item.description = attributes[:description] unless attributes[:description].nil?
+    item.unit_price = attributes[:unit_price] unless attributes[:unit_price].nil?
+    item.updated_at = Time.now
   end
 end
