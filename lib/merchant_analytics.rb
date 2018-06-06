@@ -1,7 +1,16 @@
 module MerchantAnalytics
   def rank_merchants_by_revenue
+    invoices = @paid_invoices.group_by { |invoice| invoice.merchant_id }
     @engine.merchants.all.sort_by do |merchant|
-      -revenue_by_merchant(merchant.id)
+      -revenue_generated_in_merchant_invoices(invoices[merchant.id])
+    end
+  end
+
+  def revenue_generated_in_merchant_invoices(invoices)
+    return 0 if invoices.nil?
+    invoices.inject(0) do |revenue, invoice|
+      revenue += invoice_total(invoice.id)
+      revenue
     end
   end
 
@@ -15,11 +24,7 @@ module MerchantAnalytics
 
   def revenue_by_merchant(merchant_id)
     invoices = @engine.invoices.find_all_by_merchant_id(merchant_id)
-    invoices.delete_if { |invoice| !invoice_paid_in_full?(invoice.id) }
-    invoices.inject(0) do |revenue, invoice|
-      revenue += invoice_total(invoice.id)
-      revenue
-    end
+    revenue_generated_in_merchant_invoices(invoices)
   end
 
   def total_revenue_by_date(date)

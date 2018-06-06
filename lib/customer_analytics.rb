@@ -1,21 +1,21 @@
 module CustomerAnalytics
   def rank_customers_by_money_spent
+    invoices = @paid_invoices.group_by { |invoice| invoice.customer_id }
     @engine.customers.all.sort_by do |customer|
-      -money_spent_by_customer(customer.id)
+      -money_spent_by_customer(invoices[customer.id])
+    end
+  end
+
+  def money_spent_by_customer(invoices)
+    return 0 if invoices.nil?
+    invoices.inject(0) do |money_spent, invoice|
+      money_spent += invoice_total(invoice.id)
+      money_spent
     end
   end
 
   def top_buyers(x = 20)
     @ranked_customers[0..(x - 1)]
-  end
-
-  def money_spent_by_customer(customer_id)
-    invoices = @engine.invoices.find_all_by_customer_id(customer_id)
-    invoices.delete_if { |invoice| !invoice_paid_in_full?(invoice.id) }
-    invoices.inject(0) do |money_spent, invoice|
-      money_spent += invoice_total(invoice.id)
-      money_spent
-    end
   end
 
   def top_merchant_for_customer(customer_id)
@@ -103,7 +103,7 @@ module CustomerAnalytics
   def customers_with_unpaid_invoices
     @engine.customers.all.find_all do |customer|
       @engine.invoices.find_all_by_customer_id(customer.id).any? do |invoice|
-        !invoice_paid_in_full?(invoice.id)
+        !invoice_in_paid_invoices?(invoice.id)
       end
     end
   end
@@ -117,7 +117,7 @@ module CustomerAnalytics
 
   def invoices_by_revenue
     invoices = group_invoice_items_by_invoice
-    invoices.delete_if { |invoice_id| !invoice_paid_in_full?(invoice_id) }
+    invoices.delete_if { |invoice_id| !invoice_in_paid_invoices?(invoice_id) }
     invoices.inject(Hash.new(0)) do |revenues, invoice|
       revenues[invoice.first] += revenue_per_invoice(invoice.last)
       revenues
@@ -137,6 +137,10 @@ module CustomerAnalytics
     end
   end
 
+  def invoice_in_paid_invoices?(invoice_id)
+    @paid_invoices.include?(@engine.invoices.find_by_id(invoice_id))
+  end
+
   def best_invoice_by_quantity
     max_quantity_invoice = invoices_by_quantity.max_by do |invoice, quantity|
       quantity
@@ -146,7 +150,7 @@ module CustomerAnalytics
 
   def invoices_by_quantity
     invoices = group_invoice_items_by_invoice
-    invoices.delete_if { |invoice_id| !invoice_paid_in_full?(invoice_id) }
+    invoices.delete_if { |invoice_id| !invoice_in_paid_invoices?(invoice_id) }
     invoices.inject(Hash.new(0)) do |quantities, invoice|
       quantities[invoice.first] += quantity_per_invoice(invoice.last)
       quantities

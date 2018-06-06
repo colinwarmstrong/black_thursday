@@ -7,6 +7,7 @@ class SalesAnalyst
 
   def initialize(engine)
     @engine = engine
+    @paid_invoices = all_paid_invoices
     @ranked_merchants = rank_merchants_by_revenue
     @ranked_customers = rank_customers_by_money_spent
   end
@@ -179,6 +180,12 @@ class SalesAnalyst
     invoices.inject(0) do |total, invoice_item|
       total += invoice_item.quantity * invoice_item.unit_price
       total
+    end
+  end
+
+  def all_paid_invoices
+    @engine.invoices.all.find_all do |invoice|
+      invoice_paid_in_full?(invoice.id)
     end
   end
 end
