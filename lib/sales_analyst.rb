@@ -6,10 +6,10 @@ class SalesAnalyst
   include CustomerAnalytics
 
   def initialize(engine)
-    @engine = engine
-    @paid_invoices = all_paid_invoices
-    @ranked_merchants = rank_merchants_by_revenue
-    @ranked_customers = rank_customers_by_money_spent
+    @engine           ||= engine
+    @paid_invoices    ||= all_paid_invoices
+    @ranked_merchants ||= rank_merchants_by_revenue
+    @ranked_customers ||= rank_customers_by_money_spent
   end
 
   def group_items_by_merchant

@@ -115,6 +115,6 @@ class SalesEngine
   end
 
   def create_sales_analyst(engine)
-    @analyst = SalesAnalyst.new(engine)
+    @analyst ||= SalesAnalyst.new(engine)
   end
 end
