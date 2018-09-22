@@ -1,101 +1,49 @@
-require_relative '../lib/item'
-class ItemRepository
+require_relative 'item'
 
-  def initialize
-    @items = []
-  end
-
-  def inspect
-   “#<#{self.class} #{@items.size} rows>”
-  end
-
-  def create(attributes)
-    new_item = Item.new({id: attributes[:id], name: attributes[:name],
-                                  description: attributes[:description],
-                                  unit_price: attributes[:unit_price],
-                                  created_at: attributes[:created_at],
-                                  updated_at: attributes[:updated_at],
-                                  merchant_id: attributes[:merchant_id]})
-    @items << new_item
-    return new_item
-  end
-
-  def all
-    @items
-  end
-
-  def find_by_id(id)
-    @items.each do |item|
-      if item.id == id
-        return item
-        break
-      else
-        return nil
-      end
-    end
-  end
-
+class ItemRepository < Repository
   def find_by_name(name)
-    @items.each do |item|
-      if item.name == name
-        return item
-        break
-      else
-        return nil
-      end
+    @repository.find do |item|
+      item.name.downcase == name.downcase
     end
   end
 
   def find_all_with_description(description)
-    matching_descriptions = []
-    @items.each do |item|
-      if item.description.include?(description)
-        matching_descriptions << item
-      end
+    @repository.find_all do |item|
+      item.description.downcase == description.downcase
     end
-    return matching_descriptions
   end
 
-  def find_all_with_price(price)
-    matching_prices = []
-    @items.each do |item|
-      if item.price == price
-        matching_prices << item
-      end
+  def find_all_by_price(price)
+    @repository.find_all do |item|
+      item.unit_price_to_dollars == price
     end
-    return matching_prices
   end
 
-  def find_all_by_price_in_range(range)
-    valid_prices = []
-    @items.each do |item|
-      if range.include?(item.price)
-        matching_prices << item
-      end
+  def find_all_by_price_in_range(price_range)
+    @repository.find_all do |item|
+      price_range.include?(item.unit_price_to_dollars)
     end
-    return valid_prices
   end
 
   def find_all_by_merchant_id(merchant_id)
-    matching_merchants = []
-    @items.each do |item|
-      if item.merchant_id = merchant_id
-      matching_merchants << item
-      end
+    @repository.find_all do |item|
+      item.merchant_id == merchant_id
     end
-    return matching_merchants
+  end
+
+  def create(attributes)
+    attributes[:id] = new_id(attributes)
+    new_item = Item.new(attributes)
+    @repository << new_item
+    new_item
   end
 
   def update(id, attributes)
-    updated_item = find_by_id(id)
-    updated_item.name = attributes[:name]
-    updated_item.description = attributes[:description]
-    updated_item.unit_price = attributes[:unit_price]
-    updated_item.updated_time = Time.now
-  end
-
-  def delete(id)
-    deleted_item = find_by_id(id)
-    @items.delete(deleted_item)
+    return if find_by_id(id).nil?
+    item = find_by_id(id)
+    item.name = attributes[:name] unless attributes[:name].nil?
+    item.description = attributes[:description] unless attributes[:description].nil?
+    item.unit_price = attributes[:unit_price] unless attributes[:unit_price].nil?
+    item.updated_at = Time.now
   end
 end

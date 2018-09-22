@@ -1,18 +1,18 @@
-class Item
-  attr_accessor :name,
-                :description,
+class InvoiceItem
+  attr_accessor :quantity,
                 :unit_price,
                 :updated_at
   attr_reader   :id,
-                :merchant_id,
+                :item_id,
+                :invoice_id,
                 :created_at
 
   def initialize(attributes)
     @id = attributes[:id].to_i
-    @name = attributes[:name]
-    @description = attributes[:description]
+    @item_id = attributes[:item_id].to_i
+    @invoice_id = attributes[:invoice_id].to_i
+    @quantity = attributes[:quantity].to_i
     @unit_price = attributes[:unit_price].to_d / 100
-    @merchant_id = attributes[:merchant_id].to_i
     @created_at = attributes[:created_at]
     @updated_at = attributes[:updated_at]
   end
