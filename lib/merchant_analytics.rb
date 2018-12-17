@@ -8,6 +8,7 @@ module MerchantAnalytics
 
   def revenue_generated_in_merchant_invoices(invoices)
     return 0 if invoices.nil?
+
     invoices.inject(0) do |revenue, invoice|
       revenue += invoice_total(invoice.id)
       revenue
@@ -56,7 +57,7 @@ module MerchantAnalytics
 
   def merchants_with_only_one_item_registered_in_month(month)
     merchants_with_only_one_item.find_all do |merchant|
-      merchant.created_at.strftime('%B').downcase == month.downcase
+      merchant.created_at.strftime('%B').casecmp(month).zero?
     end
   end
 

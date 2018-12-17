@@ -1,6 +1,6 @@
 module CustomerAnalytics
   def rank_customers_by_money_spent
-    invoices = @paid_invoices.group_by { |invoice| invoice.customer_id }
+    invoices = @paid_invoices.group_by(&:customer_id)
     @engine.customers.all.sort_by do |customer|
       -money_spent_by_customer(invoices[customer.id])
     end
@@ -8,14 +8,15 @@ module CustomerAnalytics
 
   def money_spent_by_customer(invoices)
     return 0 if invoices.nil?
+
     invoices.inject(0) do |money_spent, invoice|
       money_spent += invoice_total(invoice.id)
       money_spent
     end
   end
 
-  def top_buyers(x = 20)
-    @ranked_customers[0..(x - 1)]
+  def top_buyers(quantity = 20)
+    @ranked_customers[0..(quantity - 1)]
   end
 
   def top_merchant_for_customer(customer_id)
@@ -30,7 +31,7 @@ module CustomerAnalytics
       total = total_items_sold_per_invoice(invoice_items_by_invoice[invoice.id])
       purchases[invoice.merchant_id] += total
       purchases
-    end.max_by { |merchant| merchant.last }
+    end.max_by(&:last)
   end
 
   def total_items_sold_per_invoice(invoice_items)
@@ -110,9 +111,7 @@ module CustomerAnalytics
   end
 
   def best_invoice_by_revenue
-    max_revenue_invoice = invoices_by_revenue.max_by do |invoice|
-      invoice.last
-    end
+    max_revenue_invoice = invoices_by_revenue.max_by(&:last)
     @engine.invoices.find_by_id(max_revenue_invoice.first)
   end
 
@@ -133,9 +132,7 @@ module CustomerAnalytics
   end
 
   def group_invoice_items_by_invoice
-    @engine.invoice_items.all.group_by do |invoice_item|
-      invoice_item.invoice_id
-    end
+    @engine.invoice_items.all.group_by(&:invoice_id)
   end
 
   def best_invoice_by_quantity

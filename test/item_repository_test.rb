@@ -47,13 +47,13 @@ class ItemRepositoryTest < Minitest::Test
   end
 
   def test_find_all_by_price_finds_all_items_matching_given_price
-    price = BigDecimal.new(25)
+    price = Kernel.BigDecimal(25)
     expected = @items.find_all_by_price(price)
     assert_equal 79, expected.length
-    price = BigDecimal.new(10)
+    price = Kernel.BigDecimal(10)
     expected = @items.find_all_by_price(price)
     assert_equal 63, expected.length
-    price = BigDecimal.new(20000)
+    price = Kernel.BigDecimal(20000)
     expected = @items.find_all_by_price(price)
     assert_equal 0, expected.length
   end
@@ -86,7 +86,7 @@ class ItemRepositoryTest < Minitest::Test
     attributes = {
       name: "Capita Defenders of Awesome 2018",
       description: "This board both rips and shreds",
-      unit_price: BigDecimal.new(399.99, 5),
+      unit_price: Kernel.BigDecimal(399.99, 5),
       created_at: Time.now,
       updated_at: Time.now,
       merchant_id: 25
@@ -100,7 +100,7 @@ class ItemRepositoryTest < Minitest::Test
     attributes = {
       name: "Capita Defenders of Awesome 2018",
       description: "This board both rips and shreds",
-      unit_price: BigDecimal.new(399.99, 5),
+      unit_price: Kernel.BigDecimal(399.99, 5),
       created_at: Time.now,
       updated_at: Time.now,
       merchant_id: 25
@@ -108,7 +108,7 @@ class ItemRepositoryTest < Minitest::Test
     @items.create(attributes)
     original_time = @items.find_by_id(263567475).updated_at
     updated_attributes = {
-      unit_price: BigDecimal.new(379.99, 5)
+      unit_price: Kernel.BigDecimal(379.99, 5)
     }
     @items.update(263567475, updated_attributes)
     expected = @items.find_by_id(263567475)
@@ -121,7 +121,7 @@ class ItemRepositoryTest < Minitest::Test
     attributes = {
       name: "Capita Defenders of Awesome 2018",
       description: "This board both rips and shreds",
-      unit_price: BigDecimal.new(399.99, 5),
+      unit_price: Kernel.BigDecimal(399.99, 5),
       created_at: Time.now,
       updated_at: Time.now,
       merchant_id: 25

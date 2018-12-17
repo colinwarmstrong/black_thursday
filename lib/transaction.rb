@@ -3,7 +3,7 @@ class Transaction
                 :credit_card_expiration_date,
                 :result,
                 :updated_at
-                
+
   attr_reader   :id,
                 :invoice_id,
                 :created_at

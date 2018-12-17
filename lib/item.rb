@@ -3,7 +3,7 @@ class Item
                 :description,
                 :unit_price,
                 :updated_at
-                
+
   attr_reader   :id,
                 :merchant_id,
                 :created_at
